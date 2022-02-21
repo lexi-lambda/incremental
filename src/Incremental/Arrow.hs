@@ -40,8 +40,11 @@ foldlA' f = arr (\(e, v, xs) -> (e, v, toList xs)) >>> go where
 {-# INLINABLE foldlA' #-}
 
 traverseA_ :: (ArrowChoice arr, ArrowLazy arr, Foldable t) => arr (e, a) b -> arr (e, t a) ()
-traverseA_ f = proc (e, xs) ->
-  (| foldlA' (\() x -> do { (e, x) >- f; () >- returnA }) |) () xs
+traverseA_ f =
+      arr (\(e, xs) -> (e, (), xs))
+  >>> foldlA' (arr (\(e, (), x) -> (e, x))
+           >>> f
+           >>> arr (const ()))
 {-# INLINABLE traverseA_ #-}
 
 data Traversal a r b
